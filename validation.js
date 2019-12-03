@@ -1,14 +1,32 @@
+
 if (typeof isSendingForm == "undefined")
   var isSendingForm = false;
 
 function initForm(formID) {
   fields = getFields(formID);
   for (var i = 0; i < fields.length; i++) {
-    setValidation(fields[i]);
+    setValidation(fields[i], false);
     if ($(fields[i]).data("mask")) {
       setMask(fields[i]);
     }
   }
+}
+
+function beforeSubmit(formID) {
+  fields = getFields(formID);
+  var formValid = true;
+  for (var i = 0; i < fields.length; i++) {
+    fieldReturn = setValidation(fields[i], true);
+    if (!fieldReturn) {
+      formValid = false;
+    }
+  }
+  if (formValid) {
+    console.log("valido");
+  } else {
+    console.log("invalido");
+  }
+  return formValid;
 }
 
 function getFields(formID) {
@@ -16,54 +34,95 @@ function getFields(formID) {
   return fields;
 }
 
-function setValidation(obj) {
+function setValidation(obj, validateNow) {
   fieldType = $(obj).data('type');
+  var minlengthConf = 0;
+  if (($(obj).data("required") == true) || $(obj).data('minlenght') > 1) {
+    minlengthConf = ($(obj).data('minlenght') ? $(obj).data('minlenght') : 1);
+  }
   switch (fieldType) {
     case 'text':
-      var minlengthConf = ($(obj).data('minlenght') ? $(obj).data('minlenght') : 1);
+      if (validateNow) {
+        validateTextField(obj, minlengthConf);
+      }
       $(obj).on("blur", function() {
         validateTextField(obj, minlengthConf);
       });
       break;
     case 'email':
+      if (validateNow) {
+        validateEmail(obj);
+      }
       $(obj).on("blur", function() {
         validateEmail(obj);
       });
       break;
+    case 'password':
+      if (validateNow) {
+        validatePassword(obj, minlengthConf);
+      }
+      $(obj).on("blur", function() {
+        validatePassword(obj, minlengthConf);
+      });
+      break;
     case 'cpf':
+      if (validateNow) {
+        validateCPF(obj);
+      }
       $(obj).on("blur", function() {
         validateCPF(obj);
       });
       break;
     case 'cep':
+      if (validateNow) {
+        validateCEP(obj);
+      }
       $(obj).on("blur", function() {
         validateCEP(obj);
       });
       break;
     case 'phone':
+      if (validateNow) {
+        validatePhone(obj);
+      }
       $(obj).on("blur", function() {
         validatePhone(obj);
       });
     case 'mobile':
+      if (validateNow) {
+        validatePhone(obj);
+      }
       $(obj).on("blur", function() {
         validatePhone(obj);
       });
     case 'phone-mobile':
+      if (validateNow) {
+        validatePhone(obj);
+      }
       $(obj).on("blur", function() {
         validatePhone(obj);
       });
       break;
     case 'mobile':
+      if (validateNow) {
+        validatePhone(obj);
+      }
       $(obj).on("blur", function() {
         validatePhone(obj);
       });
       break;
-    case 'radio':
+    case 'radiof':
+      if (validateNow) {
+        validateRadio(obj);
+      }
       $(obj).on("blur", function() {
         validateRadio(obj);
       });
       break;
     case 'data':
+      if (validateNow) {
+        validateData(obj);
+      }
       $(obj).on("blur", function() {
         validateData(obj);
       });
@@ -92,12 +151,27 @@ function setMask(obj) {
 TODO:
 validation.js:69 Unknown datatype: select (nao vazio)
 validation.js:69 Unknown datatype: number (Numero apenas)
-validation.js:69 Unknown datatype: phone-mobile (Verificar se começa com 9)
-validation.js:69 Unknown datatype: password (aceitar regex como definicao)
 
 Consertar validacao de radio
 Mensagens configuráveis
 */
+
+function validateTextField(obj, minlengthConf, returnOnly) {
+  $(obj).parent().find("span.error").remove();
+  var text = obj.value;
+  var minlength = 1;
+  if (minlengthConf) {
+    minlength = parseInt(minlengthConf);
+  }
+  if (text.length < minlength) {
+    if (!returnOnly) {
+      $(obj).parent().append("<span class='error'>Preencha o campo corretamente.</span>");
+    }
+
+    return false;
+  }
+  return true;
+}
 
 function validateRadio(objName, container) {
   $("#" + container + " span.error").remove();
@@ -161,7 +235,7 @@ function maskPhone(obj, event) {
   text = obj.value.replace(/\D/g, '');
 
   //XXX: Mobile phone in Brazil (XX) 9 XXXX-XXXX
-  if (text.substr(2,1) == 9) {
+  if (text.substr(2, 1) == 9) {
     maskpattern = "(##) # ####-####";
   }
 
@@ -198,16 +272,64 @@ function validateEmail(obj) {
   return true;
 }
 
-function validateTextField(obj, minlengthConf) {
+function validatePassword(obj, minlengthConf) {
   $(obj).parent().find("span.error").remove();
-  var text = obj.value;
-  var minlength = 1;
-  if (minlengthConf) {
-    minlength = parseInt(minlengthConf);
+  console.log(minlengthConf);
+  if (validateTextField(obj, minlengthConf, true)) {
+      rules = {
+        lowercase: true,
+        uppercase: false,
+        numbers: true,
+        symbols: false
+    };
+    if (!passwordValidator(obj.value, rules)) {
+      $(obj).parent().append("<span class='error'>Senha inválida, preencha novamente.</span>");
+      return false;
+    }
+    return true;
   }
-  if (text.length < minlength) {
-    $(obj).parent().append("<span class='error'>Preencha o campo corretamente.</span>");
-    return false;
+  $(obj).parent().append("<span class='error'>Senha deve ter no mínimo "+minlengthConf+" caracteres.</span>");
+  return false;
+}
+
+function passwordValidator(pass, rules) {
+  var lowercase = rules.lowercase;
+  var uppercase = rules.uppercase;
+  var numbers = rules.numbers;
+  var symbols = rules.symbols;
+
+  var format;
+  console.log(pass);
+  if (lowercase) {
+    console.log("lowercase");
+    format = /[a-z]/;
+    if (!format.test(pass)) {
+      return false;
+    }
+  }
+
+  if (uppercase) {
+    console.log("uppercase");
+    format = /[A-Z]/;
+    if (!format.test(pass)) {
+      return false;
+    }
+  }
+
+  if (numbers) {
+    console.log("numbers");
+    format = /[\d]/;
+    if (!format.test(pass)) {
+      return false;
+    }
+  }
+
+  if (symbols) {
+    console.log("symbols");
+    format = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/;
+    if (!format.test(pass)) {
+      return false;
+    }
   }
   return true;
 }
