@@ -12,18 +12,8 @@ function initForm(formID) {
 }
 
 function getFields(formID) {
-  var fields = $("#"+ formID).find("[data-validate]");
+  var fields = $("#" + formID).find("[data-validate]");
   return fields;
-}
-
-
-function setMask(obj) {
-  var maskpattern = $(obj).data("mask");
-  if (maskpattern != "") {
-    $(obj).on("keyup", function () {
-      mask(maskpattern, obj, event);
-    });
-  }
 }
 
 function setValidation(obj) {
@@ -31,38 +21,51 @@ function setValidation(obj) {
   switch (fieldType) {
     case 'text':
       var minlengthConf = ($(obj).data('minlenght') ? $(obj).data('minlenght') : 1);
-      $(obj).on("blur", function () {
+      $(obj).on("blur", function() {
         validateTextField(obj, minlengthConf);
       });
       break;
     case 'email':
-      $(obj).on("blur", function () {
+      $(obj).on("blur", function() {
         validateEmail(obj);
       });
       break;
     case 'cpf':
-      $(obj).on("blur", function () {
+      $(obj).on("blur", function() {
         validateCPF(obj);
       });
       break;
     case 'cep':
-      $(obj).on("blur", function () {
+      $(obj).on("blur", function() {
         validateCEP(obj);
       });
       break;
     case 'phone':
-      $(obj).on("blur", function () {
+      $(obj).on("blur", function() {
+        validatePhone(obj);
+      });
+    case 'mobile':
+      $(obj).on("blur", function() {
+        validatePhone(obj);
+      });
+    case 'phone-mobile':
+      $(obj).on("blur", function() {
         validatePhone(obj);
       });
       break;
     case 'mobile':
-      $(obj).on("blur", function () {
+      $(obj).on("blur", function() {
         validatePhone(obj);
       });
       break;
     case 'radio':
-      $(obj).on("blur", function () {
+      $(obj).on("blur", function() {
         validateRadio(obj);
+      });
+      break;
+    case 'data':
+      $(obj).on("blur", function() {
+        validateData(obj);
       });
       break;
     default:
@@ -70,6 +73,31 @@ function setValidation(obj) {
       return false;
   }
 }
+
+function setMask(obj) {
+  var maskpattern = $(obj).data("mask");
+  if (maskpattern != "") {
+    $(obj).on("keyup", function() {
+      switch ($(obj).data("type")) {
+        case "phone-mobile":
+          maskPhone(obj, event);
+          break;
+        default:
+          mask(maskpattern, obj, event);
+      }
+    });
+  }
+}
+/*
+TODO:
+validation.js:69 Unknown datatype: select (nao vazio)
+validation.js:69 Unknown datatype: number (Numero apenas)
+validation.js:69 Unknown datatype: phone-mobile (Verificar se começa com 9)
+validation.js:69 Unknown datatype: password (aceitar regex como definicao)
+
+Consertar validacao de radio
+Mensagens configuráveis
+*/
 
 function validateRadio(objName, container) {
   $("#" + container + " span.error").remove();
@@ -123,6 +151,37 @@ function validatePhone(obj) {
   if (numTel.length < 10 || (regex.test(numTel))) {
     obj.value = "";
     $(obj).parent().append("<span class='error'>Telefone inválido, preencha novamente.</span>");
+    return false;
+  }
+}
+
+function maskPhone(obj, event) {
+  var maskpattern = "(##) ####-####";
+  var cursor = obj.selectionStart;
+  text = obj.value.replace(/\D/g, '');
+
+  //XXX: Mobile phone in Brazil (XX) 9 XXXX-XXXX
+  if (text.substr(2,1) == 9) {
+    maskpattern = "(##) # ####-####";
+  }
+
+  mask(maskpattern, obj, event);
+}
+
+function validateData(obj) {
+  $(obj).parent().find("span.error").remove();
+  data = obj.value;
+
+  //XXX: Convert Brazilian date format to US date format
+  databr = data.split("/");
+  data = databr[1] + "/" + databr[0] + "/" + databr[2];
+
+  d = new Date(data);
+  if (d.getDate() == databr[0]) {
+    return true;
+  } else {
+    obj.value = "";
+    $(obj).parent().append("<span class='error'>Data inválida, preencha novamente.</span>");
     return false;
   }
 }
@@ -182,8 +241,8 @@ function formSent() {
 }
 
 function mask(m, t, e) {
-  // Forked from https://github.com/FlavioALeal/MascaraJS
-  // Obrigado, Flavio!
+  //XXX: Forked from https://github.com/FlavioALeal/MascaraJS
+  //XXX: Obrigado, Flavio!
   var cursor = t.selectionStart;
   var text = t.value;
   text = text.replace(/\D/g, '');
@@ -222,7 +281,7 @@ function mask(m, t, e) {
 }
 
 function validatorCPF(strCPF) {
-  // Brazilian Natural Persons Register validator
+  //XXX: Brazilian Natural Persons Register validator
   strCPF = strCPF.replace(/\D/g, '');
   var Soma;
   var Resto;
