@@ -16,6 +16,7 @@ function getFields(formID) {
   return fields;
 }
 
+
 function setMask(obj) {
   var maskpattern = $(obj).data("mask");
   if (maskpattern != "") {
