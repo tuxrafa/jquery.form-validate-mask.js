@@ -10,6 +10,12 @@ function initForm(formID) {
       setMask(fields[i]);
     }
   }
+  $("#"+formID).on("submit", function (e) {
+    // e.preventDefault();
+    if (!beforeSubmit(formID)) {
+        return false;
+    }
+  })
 }
 
 function beforeSubmit(formID) {
@@ -17,7 +23,8 @@ function beforeSubmit(formID) {
   var formValid = true;
   for (var i = 0; i < fields.length; i++) {
     fieldReturn = setValidation(fields[i], true);
-    if (!fieldReturn) {
+    if (!fieldReturn && formValid) {
+      fields[i].focus();
       formValid = false;
     }
   }
