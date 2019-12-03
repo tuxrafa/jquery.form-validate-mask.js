@@ -17,11 +17,10 @@ function getFields(formID) {
 }
 
 function setMask(obj) {
-  var mask = $(obj).data("mask");
-  if (mask != "") {
-    $(obj).on("keydown", function () {
-      // '##/##/####',this,event
-      mask(obj, minlengthConf);
+  var maskpattern = $(obj).data("mask");
+  if (maskpattern != "") {
+    $(obj).on("keyup", function () {
+      mask(maskpattern, obj, event);
     });
   }
 }
