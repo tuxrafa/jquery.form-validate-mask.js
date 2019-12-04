@@ -5,7 +5,7 @@ if (typeof isSendingForm == "undefined")
 function initForm(formID) {
   fields = getFields(formID);
   for (var i = 0; i < fields.length; i++) {
-    setValidation(fields[i], false);
+    setValidation(fields[i], false, formID);
     if ($(fields[i]).data("mask")) {
       setMask(fields[i]);
     }
@@ -22,16 +22,17 @@ function beforeSubmit(formID) {
   fields = getFields(formID);
   var formValid = true;
   for (var i = 0; i < fields.length; i++) {
-    fieldReturn = setValidation(fields[i], true);
-    if (!fieldReturn && formValid) {
+    fieldReturn = setValidation(fields[i], true, formID);
+    fieldRequired = $(fields[i]).data("required");
+    if (!fieldReturn && formValid && (fieldRequired == true)) {
       fields[i].focus();
       formValid = false;
     }
   }
   if (formValid) {
-    console.log("valido");
+    alert("valido");
   } else {
-    console.log("invalido");
+    alert("invalido");
   }
   return formValid;
 }
@@ -41,7 +42,7 @@ function getFields(formID) {
   return fields;
 }
 
-function setValidation(obj, validateNow) {
+function setValidation(obj, validateNow, formID) {
   fieldType = $(obj).data('type');
   var minlengthConf = 0;
   if (($(obj).data("required") == true) || $(obj).data('minlenght') > 1) {
@@ -95,6 +96,7 @@ function setValidation(obj, validateNow) {
       $(obj).on("blur", function() {
         validatePhone(obj);
       });
+      break;
     case 'mobile':
       if (validateNow) {
         validatePhone(obj);
@@ -102,6 +104,7 @@ function setValidation(obj, validateNow) {
       $(obj).on("blur", function() {
         validatePhone(obj);
       });
+      break;
     case 'phone-mobile':
       if (validateNow) {
         validatePhone(obj);
@@ -118,12 +121,31 @@ function setValidation(obj, validateNow) {
         validatePhone(obj);
       });
       break;
-    case 'radiof':
+    case 'radio':
       if (validateNow) {
-        validateRadio(obj);
+        validateRadio(obj, formID);
       }
       $(obj).on("blur", function() {
-        validateRadio(obj);
+        validateRadio(obj, formID);
+      });
+      $(obj).parent().on("blur", function() {
+        validateRadio(obj, formID);
+      });
+      break;
+    case 'select':
+      if (validateNow) {
+        validateSelect(obj);
+      }
+      $(obj).on("blur", function() {
+        validateSelect(obj);
+      });
+      break;
+    case 'number':
+      if (validateNow) {
+        validateNumber(obj);
+      }
+      $(obj).on("blur", function() {
+        validateNumber(obj);
       });
       break;
     case 'data':
@@ -180,26 +202,22 @@ function validateTextField(obj, minlengthConf, returnOnly) {
   return true;
 }
 
-function validateRadio(objName, container) {
-  $("#" + container + " span.error").remove();
-  if ($("#" + container + " [name=" + objName + "]:checked").val() != undefined) {
-    return true;
+function validateRadio(obj, formID) {
+  $(obj).parent().find("span.error").remove();
+  objName = obj.name;
+  console.log(objName);
+  console.log(obj);
+  if (objName) {
+    if ($("#"+formID+ " input[name=" + objName + "]:checked").val() != undefined) {
+      return true;
+    }
+    $(obj).parent().find("span.error").remove();
+    $(obj).parent().append("<span class='error'>Por favor, informe o " + objName + ".</span>");
+    return false;
+  } else {
+    console.log("Radio sem nome");
+    console.log(obj);
   }
-  $("#" + container).append("<span class='error'>Por favor, informe o " + objName + ".</span>");
-  return false;
-}
-
-function radioInvalid() {
-  var radioInvalid = false;
-
-  if (!validateRadio("motivo", "contatoMotivo")) {
-    radioInvalid = true;
-  }
-
-  if (!validateRadio("sexo", "contatoSexo")) {
-    radioInvalid = true;
-  }
-  return radioInvalid;
 }
 
 function validateCPF(obj) {
@@ -210,6 +228,26 @@ function validateCPF(obj) {
     return false;
   }
   return true;
+}
+
+function validateSelect(obj) {
+  $(obj).parent().find("span.error").remove();
+  if (obj.value == "") {
+    $(obj).parent().append("<span class='error'>Escolha uma opção.</span>");
+    return false;
+  }
+  return true;
+}
+
+function validateNumber(obj) {
+  $(obj).parent().find("span.error").remove();
+  cep = obj.value;
+  cep = cep.replace(/\d/g, '');
+  if (cep.length > 0) {
+    obj.value = "";
+    $(obj).parent().append("<span class='error'>Campo inválido, preencha novamente.</span>");
+    return false;
+  }
 }
 
 function validateCEP(obj) {

@@ -47,10 +47,8 @@
 
       <div class="form-group col2">
         <label for="">Sexo*</label>
-        <select data-validate="true" data-type="select" data-required="true" class="form-control">
-          <option>Masculino</option>
-          <option>Feminino</option>
-        </select>
+        <input type="radio" name="sexo" id="sexo-f" value="Feminino" data-validate="true" data-type="radio" data-required="true">
+        <input type="radio" name="sexo" id="sexo-m" value="Masculino" data-validate="true" data-type="radio" data-required="true">
       </div>
 
       <div class="form-group col2">
@@ -61,8 +59,9 @@
       <div class="form-group col2">
         <label for="">Time de futebol</label>
         <select data-validate="true" data-type="select" data-required="false" class="form-control">
-          <option>Santos</option>
-          <option>São Paulo</option>
+          <option value="" selected disabled>Selecione</option>
+          <option value="Santos">Santos</option>
+          <option value="SaoPaulo">São Paulo</option>
         </select>
       </div>
 
@@ -143,11 +142,11 @@
       </div>
 
       <div class="form-group col2">
-        <input data-validate="true" data-type="radio" type="radio" /> Aceito receber mensagens no celular
+        <input data-validate="true" /> Aceito receber mensagens no celular
       </div>
 
       <div class="form-group col2">
-        <input data-validate="true" data-type="radio" type="radio" /> Aceito receber mensagens por e-mail
+        <input data-validate="true" /> Aceito receber mensagens por e-mail
       </div>
 
       <div class="form-group col1">
