@@ -2,7 +2,7 @@
 if (typeof isSendingForm == "undefined")
   var isSendingForm = false;
 
-function initForm(formID) {
+function validaForm(formID) {
   fields = getFields(formID);
   for (var i = 0; i < fields.length; i++) {
     setValidation(fields[i], false, formID);
@@ -158,6 +158,7 @@ function setValidation(obj, validateNow, formID) {
       break;
     default:
       console.log("Unknown datatype: " + fieldType);
+      console.log(obj);
       return false;
   }
 }
@@ -205,8 +206,6 @@ function validateTextField(obj, minlengthConf, returnOnly) {
 function validateRadio(obj, formID) {
   $(obj).parent().find("span.error").remove();
   objName = obj.name;
-  console.log(objName);
-  console.log(obj);
   if (objName) {
     if ($("#"+formID+ " input[name=" + objName + "]:checked").val() != undefined) {
       return true;
@@ -319,7 +318,6 @@ function validateEmail(obj) {
 
 function validatePassword(obj, minlengthConf) {
   $(obj).parent().find("span.error").remove();
-  console.log(minlengthConf);
   if (validateTextField(obj, minlengthConf, true)) {
       rules = {
         lowercase: true,
@@ -344,9 +342,7 @@ function passwordValidator(pass, rules) {
   var symbols = rules.symbols;
 
   var format;
-  console.log(pass);
   if (lowercase) {
-    console.log("lowercase");
     format = /[a-z]/;
     if (!format.test(pass)) {
       return false;
@@ -354,7 +350,6 @@ function passwordValidator(pass, rules) {
   }
 
   if (uppercase) {
-    console.log("uppercase");
     format = /[A-Z]/;
     if (!format.test(pass)) {
       return false;
@@ -362,7 +357,6 @@ function passwordValidator(pass, rules) {
   }
 
   if (numbers) {
-    console.log("numbers");
     format = /[\d]/;
     if (!format.test(pass)) {
       return false;
@@ -370,7 +364,6 @@ function passwordValidator(pass, rules) {
   }
 
   if (symbols) {
-    console.log("symbols");
     format = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/;
     if (!format.test(pass)) {
       return false;
